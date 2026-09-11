@@ -1,7 +1,7 @@
 ---
 title: "Hello, World"
 date: 2026-09-11
-draft: false
+draft: true
 authors:
   - teramot-engineering
 tags: ["meta"]
