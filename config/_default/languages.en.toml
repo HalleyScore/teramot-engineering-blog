@@ -1,0 +1,21 @@
+disabled = false
+locale = "en"
+label = "English"
+weight = 1
+title = "Teramot Engineering"
+
+[params]
+  displayName = "EN"
+  isoCode = "en"
+  rtl = false
+  dateFormat = "2 January 2006"
+  description = "Engineering notes from the team building Teramot."
+  copyright = "© {year} Teramot"
+
+[params.author]
+  name = "Teramot Engineering"
+  headline = "Building the Teramot data platform"
+  bio = "Notes on data engineering, infrastructure, and the systems behind Teramot."
+  links = [
+    { link = "https://teramot.com" },
+  ]
