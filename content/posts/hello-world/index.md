@@ -1,24 +1,28 @@
 ---
-title: "Hello, World"
+title: "Welcome to Teramot Engineering"
 date: 2026-09-11
-draft: true
+draft: false
 authors:
   - teramot-engineering
 tags: ["meta"]
 categories: ["announcements"]
-summary: "Why we're starting an engineering blog, and what to expect from it."
+summary: "Why we are starting an engineering blog, and what to expect from it."
 showTableOfContents: false
 ---
 
+# Welcome
+
 Welcome to the Teramot engineering blog.
 
-We build the data platform that lets our customers turn raw, messy sources into
-governed, queryable tables — and along the way we run into problems worth
-writing about: data pipeline design, orchestration, infrastructure, and the
-occasional production incident that taught us something.
+We build a data platform that turns raw, messy sources into governed,
+queryable tables. Along the way, we run into problems worth writing about:
+data pipeline design, orchestration, infrastructure, and the occasional
+production incident that teaches us something.
 
-This is where we'll share that: architecture write-ups, postmortems, tooling
-deep-dives, and the reasoning behind decisions we made so future readers (often
-future us) don't have to rediscover it from scratch.
+## What to expect
+
+This is where we will share architecture write-ups, postmortems, tooling
+deep-dives, and the reasoning behind decisions we made so future readers —
+often future us — do not have to rediscover it from scratch.
 
 More soon.

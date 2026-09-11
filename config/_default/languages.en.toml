@@ -9,8 +9,8 @@ title = "Teramot Engineering"
   isoCode = "en"
   rtl = false
   dateFormat = "2 January 2006"
-  description = "Engineering notes from the team building Teramot."
-  copyright = "© {year} Teramot"
+  description = "Engineering notes on data, infrastructure, and the systems behind Teramot."
+  copyright = "© { year } Teramot"
 
 [params.author]
   name = "Teramot Engineering"
