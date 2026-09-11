@@ -53,7 +53,7 @@ The reconciliation loop is deliberately boring:
 2. Ensure the customer's network namespace and routing context exist.
 3. Ensure the XFRM interface and routes match the requested selectors.
 4. Retrieve the specific credential needed for the peer over the control plane.
-5. Load the connection into strongSwan through its local VICI socket.
+5. Load the connection into [strongSwan](https://docs.strongswan.org/docs/latest/index.html) through its local [VICI](https://docs.strongswan.org/docs/latest/plugins/vici.html) socket.
 6. Initiate or update the IKEv2 and CHILD SAs.
 7. Inspect the resulting Linux and IPsec state.
 8. Report observed state and stable diagnostic codes.
@@ -64,7 +64,7 @@ This pull-based model is also our recovery mechanism. After a reboot or instance
 
 ### What IKEv2 contributes
 
-strongSwan provides the open-source IKEv2 implementation. Peers negotiate an IKE security association, authenticate with a pre-shared key, and establish CHILD SAs for the traffic selectors; the Linux kernel handles the resulting ESP traffic through XFRM.
+[strongSwan](https://docs.strongswan.org/docs/latest/index.html) provides the open-source [IKEv2](https://www.rfc-editor.org/rfc/rfc7296.html) implementation. Peers negotiate an IKE security association, authenticate with a pre-shared key, and establish CHILD SAs for the traffic selectors; the Linux kernel handles the resulting ESP traffic through [XFRM](https://docs.kernel.org/networking/xfrm/index.html).
 
 strongSwan negotiates the security associations while the controller owns the surrounding Linux routing context. A normal connection change becomes a live reconciliation, not a host-wide restart.
 
@@ -72,7 +72,7 @@ strongSwan negotiates the security associations while the controller owns the su
 
 Overlapping private address ranges are normal in enterprise environments. Two customers may both use `10.0.0.0/8`, and a single host routing table cannot safely decide which customer owns a packet destined for `10.12.4.20`.
 
-We give every connection its own network namespace, XFRM interface, routes, and DNS view. The same address can therefore exist in two isolated routing contexts without ambiguity:
+We give every connection its own [network namespace](https://man7.org/linux/man-pages/man7/network_namespaces.7.html), XFRM interface, routes, and DNS view. The same address can therefore exist in two isolated routing contexts without ambiguity:
 
 ```text
 customer A namespace: 10.12.4.20 -> customer A tunnel
@@ -139,13 +139,13 @@ The proxy also fails closed. After a restart it can listen, but it cannot author
 
 The runtime is only useful if the machine hosting it can be rebuilt without a private operator ritual. We made the host a versioned artifact and kept environment-specific state outside it.
 
-### Packer and Ansible
+### [Packer](https://developer.hashicorp.com/packer/docs) and [Ansible Core](https://docs.ansible.com/projects/ansible-core/)
 
 Packer builds an immutable Ubuntu-based image from an exact base-image ID and pinned package sources. strongSwan comes from the distribution, along with its security updates and mandatory access-control profile.
 
 Ansible configures service accounts, systemd units, filesystem permissions, AppArmor, the allowlisted strongSwan plugins, logging, and Systems Manager. The image contains binaries and safe defaults, but no customer peer, PSK, certificate, private key, endpoint, or environment-specific URL.
 
-### Terraform and deployment
+### [Terraform](https://developer.hashicorp.com/terraform/docs) and deployment
 
 Terraform provisions a deliberately small Auto Scaling Group, a stable IKE/NAT-T address, internal load balancers for data and control traffic, security groups, private DNS, managed prefix lists, and IAM/KMS permissions.
 
@@ -218,3 +218,13 @@ Database certificate hostname verification is deliberately not downgraded: drive
 Self-service private connectivity is ultimately a systems problem. It crosses public-key authentication, IKEv2, Linux kernel networking, process privileges, database driver behavior, immutable images, cloud infrastructure, and user experience. The solution became manageable when each layer had a clear authority, a small contract, and a recovery story.
 
 *— Facundo Vivas*
+
+## References and further reading
+
+- [strongSwan documentation](https://docs.strongswan.org/docs/latest/index.html), including [VICI](https://docs.strongswan.org/docs/latest/plugins/vici.html), [swanctl](https://docs.strongswan.org/docs/latest/swanctl/swanctl.html), and the [`charon` daemon](https://docs.strongswan.org/docs/latest/daemons/charon.html).
+- [RFC 7296: Internet Key Exchange Protocol Version 2 (IKEv2)](https://www.rfc-editor.org/rfc/rfc7296.html).
+- [Linux network namespaces](https://man7.org/linux/man-pages/man7/network_namespaces.7.html).
+- [Linux kernel XFRM framework](https://docs.kernel.org/networking/xfrm/index.html).
+- [Packer documentation](https://developer.hashicorp.com/packer/docs).
+- [Ansible Core documentation](https://docs.ansible.com/projects/ansible-core/).
+- [Terraform documentation](https://developer.hashicorp.com/terraform/docs).
