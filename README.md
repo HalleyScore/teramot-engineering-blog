@@ -31,5 +31,18 @@ and publishes it via GitHub Pages.
 ## DNS
 
 `engineering.teramot.com` needs a `CNAME` record pointing at
-`<org>.github.io` (GitHub Pages custom domain). This is not managed in this
-repo — set it up in the DNS zone that manages `teramot.com`.
+`halleyscore.github.io` (GitHub Pages custom domain). This is not managed in
+this repo — set it up in the DNS zone that manages `teramot.com`.
+
+Note: with `build_type: workflow` (Actions-based Pages deploy, what this repo
+uses), GitHub does **not** auto-detect the custom domain from `static/CNAME`
+the way it does with branch-based Pages. The domain must also be registered
+explicitly on the repo's Pages config:
+
+```sh
+gh api -X PUT repos/HalleyScore/teramot-engineering-blog/pages -f "cname=engineering.teramot.com"
+gh api -X PUT repos/HalleyScore/teramot-engineering-blog/pages -F "https_enforced=true"
+```
+
+(or via Settings → Pages → Custom domain in the GitHub UI). This only needs to
+be done once per repo lifetime — it doesn't reset on redeploys.
