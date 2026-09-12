@@ -12,156 +12,142 @@ tags:
   - systems
 categories:
   - infrastructure
-summary: "How we turned a manual VPN runbook into a reconciled, fail-closed data path for database extraction."
+summary: "How we replaced manual VPN configuration with a recoverable system that connects workers only to approved databases."
 showTableOfContents: true
 ---
 
-Connecting to a database is easy when the database is inside the same network as the application. It becomes a different class of problem when the database lives behind a customer's firewall, uses private address space, and can only be reached through a site-to-site VPN.
+Teramot extracts data from sources operated by its customers. Some databases live inside private networks and are reachable only through a site-to-site VPN. Connecting them used to require an operator to configure our gateway, create a TCP forward for the database, and give its local port to the extraction worker.
 
-At Teramot, we wanted that connectivity to feel like a normal data-source configuration for the person using the platform, while still meeting the expectations of an infrastructure team: no hand-edited bastion, no process per database, no arbitrary private-network access from a worker, and no secrets baked into a server image.
+We replaced that runbook with a control plane that stores the requested connection and a gateway controller that applies it. The controller creates the isolated Linux networking resources, configures strongSwan, and reports the resulting state. If the gateway is replaced, its configuration can be reconstructed from the same stored request instead of being rebuilt by hand.
 
-The result is a self-service path that provisions an IKEv2/IPsec tunnel, isolates each customer network inside Linux, and lets extraction workers reach an approved database through a short-lived, mutually authenticated data path. This post explains the engineering behind it.
+The important change was not automating a sequence of commands. It was making a private connection a state the system maintains. This article explains how we provision and maintain that connection, then how extraction workers use it without gaining unrestricted access to the customer's network.
 
-## The problem was larger than “set up a VPN”
+## 1. From a manual runbook to a managed connection
 
-The original operational pattern was familiar: exchange a pre-shared key, edit a gateway, create a TCP forward for a database endpoint, and configure the extractor to use that forward. It works for one customer, but becomes fragile when every connection depends on remembering which host, namespace, route, and local port belong together.
+In the original process, an operator exchanged a pre-shared key, configured the Teramot gateway, and set up forwarding for each database endpoint. Operators had to track which network configuration and local ports belonged to each connection. The gateway's local disk held its configuration, so replacing the machine also meant reconstructing that setup.
 
-It also creates the wrong security boundary: a worker-provided host and port turns the proxy into a general-purpose scanner, while a local-disk source of truth makes machine replacement a recovery project.
+A script could automate those setup steps, but running them once would not answer the ongoing questions: does the gateway still match the requested configuration? Which update is current? What should a replacement machine recreate?
 
-We therefore treated the problem as two related systems:
+We split those responsibilities between a **control plane**, which stores what should exist, and a **gateway controller**, which manages the corresponding network resources:
 
-1. **A control plane** that turns a user intent into an observed, recoverable network state.
-2. **A data plane** that carries database bytes without exposing network authority to the extractor.
+| Manual responsibility | Managed replacement |
+| --- | --- |
+| Edit the gateway configuration | Validate and store the requested connection outside the gateway. |
+| Prepare the network environment | Have the controller manage namespaces, interfaces, and routes. |
+| Configure the IPsec connection | Load or update strongSwan through its control API. |
+| Inspect the machine to understand its state | Report the applied configuration and tunnel health. |
+| Rebuild configuration after a gateway failure | Reconstruct the runtime from the stored request. |
 
-The distinction matters. The control plane decides *what should exist*. The data plane moves bytes only through paths that the control plane has already authorized.
+Self-service describes the Teramot side of this process. The customer-side gateway still needs compatible configuration; storing a request in Teramot does not configure the remote peer. The connection parameters describe the agreement between those two sides.
 
-The sequence below shows the steady-state data path after the control plane has provisioned the tunnel and installed the server-side binding.
+Using the tunnel is a separate responsibility. The **data plane** carries database traffic through the provisioned connection. Keeping it separate from provisioning lets a worker use an approved destination without giving it authority to configure the gateway or choose arbitrary destinations inside the private network.
 
-![Sequence diagram showing self-service IPsec provisioning and a database connection](/diagrams/self-service-ipsec-sequence.png)
+## 2. How the controller provisions and maintains a tunnel
 
-*The extractor sees a local socket, while only the namespace dialer reaches the customer database through the IPsec tunnel. The two flows share state, but they do not share responsibilities.*
+Consider a customer connecting a private network that contains a database at `10.12.4.20`. Before an extraction can reach that database, Teramot needs a tunnel to the customer's gateway and a routing context for its private network.
 
-## 1. Reconciliation makes tunnel provisioning repeatable
+The user supplies the peer address, Internet Key Exchange (IKE) identities, approved network ranges, optional private DNS servers, and cryptographic settings. The control plane validates and stores that configuration as **desired state**: what the gateway should maintain, not a copy of files from the gateway's disk.
 
-The user-facing operation describes a connection in terms of things a customer actually knows: a peer address, IKE identities, local and remote traffic selectors, optional private DNS servers, and a cryptographic profile. The system validates that configuration and stores it as desired state.
+### Turning the request into network state
 
-The gateway does not wait for a one-off command to arrive. It periodically pulls desired state from an authenticated internal endpoint and reports observed state back. Each change carries monotonically increasing generations and fencing information, so an older reconciliation cannot overwrite a newer one.
+The controller reads the desired state and performs the work previously done on the gateway by an operator:
 
-The reconciliation loop is deliberately boring:
+1. Ensure the connection's isolated network namespace exists.
+2. Ensure its Linux IPsec interface (XFRM) and routes match the requested network ranges.
+3. Retrieve the connection's pre-shared key and load or update its configuration in strongSwan through [VICI](https://docs.strongswan.org/docs/latest/plugins/vici.html), strongSwan's local control API.
+4. Inspect the resulting Linux and IPsec state and report what was applied.
 
-1. Fetch the latest desired state.
-2. Ensure the customer's network namespace and routing context exist.
-3. Ensure the XFRM interface and routes match the requested selectors.
-4. Retrieve the specific credential needed for the peer over the control plane.
-5. Load the connection into [strongSwan](https://docs.strongswan.org/docs/latest/index.html) through its local [VICI](https://docs.strongswan.org/docs/latest/plugins/vici.html) socket.
-6. Initiate or update the IKEv2 and CHILD SAs.
-7. Inspect the resulting Linux and IPsec state.
-8. Report observed state and stable diagnostic codes.
+The controller manages the configuration around the tunnel; [strongSwan](https://docs.strongswan.org/docs/latest/index.html) handles negotiation with the remote gateway. Its [IKEv2](https://www.rfc-editor.org/rfc/rfc7296.html) implementation uses the pre-shared key to authenticate the peers and establish an IKE security association. CHILD security associations then define protection for the approved traffic. The Linux kernel encrypts that traffic using Encapsulating Security Payload (ESP) and its [XFRM](https://docs.kernel.org/networking/xfrm/index.html) framework.
 
-The gateway controller is the only writer for this managed runtime. We do not edit connection files by hand, restart the IPsec daemon for every update, or let several services “help” by writing overlapping pieces of state.
+We did not build a new IPsec implementation. We built the system that supplies its configuration, manages the surrounding Linux network environment, and connects its runtime state back to the product.
 
-This pull-based model is also our recovery mechanism. After a reboot or instance replacement, the controller rebuilds the runtime from durable desired state instead of trying to recover a collection of local files. The machine is replaceable; the intent is not.
+### Maintaining state instead of running setup once
 
-### What IKEv2 contributes
+The controller repeats this process, fetching the latest desired state and reporting **observed state**: what actually exists on the gateway. This reconciliation loop also supports recovery. After a restart or instance replacement, the controller reconstructs the runtime from the stored configuration instead of requiring an operator to restore local files.
 
-[strongSwan](https://docs.strongswan.org/docs/latest/index.html) provides the open-source [IKEv2](https://www.rfc-editor.org/rfc/rfc7296.html) implementation. Peers negotiate an IKE security association, authenticate with a pre-shared key, and establish CHILD SAs for the traffic selectors; the Linux kernel handles the resulting ESP traffic through [XFRM](https://docs.kernel.org/networking/xfrm/index.html).
+Updates can overlap in time. If a user changes a connection while an earlier update is still running, the older result must not become authoritative. Each update therefore carries an increasing generation number, which the controller checks before applying or reporting a result.
 
-strongSwan negotiates the security associations while the controller owns the surrounding Linux routing context. A normal connection change becomes a live reconciliation, not a host-wide restart.
+The controller is also the only component that changes this managed network state. The proxy does not write routes, and operators do not need to edit connection files for ordinary updates. A connection can be updated without restarting the entire IPsec service or interrupting unrelated tunnels.
 
-## 2. Linux namespaces solve overlapping customer networks
+Credentials follow a different lifecycle from configuration. The controller retrieves a pre-shared key only while configuring its tunnel. Desired-state documents, server images, logs, command lines, and Terraform state do not contain these keys. Certificate files are written only when the runtime starts.
 
-Overlapping private address ranges are normal in enterprise environments. Two customers may both use `10.0.0.0/8`, and a single host routing table cannot safely decide which customer owns a packet destined for `10.12.4.20`.
+### Knowing what “ready” means
 
-We give every connection its own [network namespace](https://man7.org/linux/man-pages/man7/network_namespaces.7.html), XFRM interface, routes, and DNS view. The same address can therefore exist in two isolated routing contexts without ambiguity:
+Applying configuration does not prove that the remote peer accepted it, and an established tunnel does not prove that a database accepts connections. We report these separately:
+
+| Status | Question it answers |
+| --- | --- |
+| Provisioning | Did the gateway apply the requested configuration? |
+| Tunnel health | Is IPsec active? |
+| Source health | Does the database accept connections? |
+
+For our example, the gateway may have the correct routes while the remote peer is unavailable. Or the tunnel may be active while the database at `10.12.4.20` is unreachable. A single “healthy” flag would hide the distinction an operator needs to diagnose the failure.
+
+## 3. Keeping overlapping private networks separate
+
+The controller needs an isolated routing context because private addresses are not globally unique. A second customer may also have a database at `10.12.4.20`. In one shared routing table, that destination alone would not identify which customer network to use.
+
+Each private connection therefore gets a [network namespace](https://man7.org/linux/man-pages/man7/network_namespaces.7.html) with its own interfaces, routes, DNS view, and XFRM interface:
 
 ```text
 customer A namespace: 10.12.4.20 -> customer A tunnel
 customer B namespace: 10.12.4.20 -> customer B tunnel
 ```
 
-The namespace is part of the authorization design. The final TCP dial and private DNS resolution happen inside the namespace selected by the server-side binding.
+The destination must identify both a database and its network context. When a worker requests a connection, the gateway selects that context from a server-side authorization record rather than from a namespace or address chosen by the worker.
 
-Privilege separation keeps that mechanism contained:
+We separate privileges along the same boundary:
 
-- The controller has the capabilities needed to manage namespaces, routes, XFRM, and the strongSwan control socket.
-- The connector proxy terminates mTLS and dispatches requests, but runs without Linux network capabilities.
-- The per-namespace dialer opens the approved TCP connection without being able to reconfigure the host or another namespace.
+- The **controller** has the capabilities needed to manage namespaces, routes, XFRM, and the strongSwan control socket.
+- The **connector proxy** authenticates and dispatches requests without Linux network capabilities.
+- A **per-namespace dialer** opens TCP connections inside its assigned namespace without permission to reconfigure the host or another namespace.
 
-A bug in the incoming-connection component should not automatically become a bug in the component that can rewire IPsec.
+The network-facing proxy therefore does not hold the controller's authority to change routing or IPsec configuration. Isolation is part of provisioning, not something an extraction worker sets up for itself.
 
-## 3. A local forwarder keeps database drivers ordinary
+## 4. Connecting existing drivers to one approved database
 
-Database drivers expect to speak their native protocol from the first byte. They cannot send a custom gateway handshake and then seamlessly switch the same socket to PostgreSQL, MySQL, or TDS.
+Once the tunnel exists, an extraction still needs a way to use it. Our original proxy accepted a destination host and port from the worker. That gave the worker too much control: a compromised worker could request other destinations inside the customer's network.
 
-Instead, the extraction runtime starts a small forwarder on loopback and points the existing driver at its ephemeral port:
+The replacement separates three questions: who is connecting, which database they may use, and which isolated network contains it.
 
-```text
-database driver
-      |
-      v
-127.0.0.1:ephemeral
-      |
-      v
-local forwarder -- mTLS + CONNECT --> private gateway
-                                         |
-                                         v
-                                  namespace dialer
-                                         |
-                                         v
-                                  customer database
-```
+### Authorizing the destination before opening a socket
 
-The forwarder opens one gateway session for each driver socket. It authenticates with a workload certificate and presents an opaque reference for the already-created source binding. The reference intentionally says nothing about the workspace, customer network, namespace, hostname, or port.
+When a user associates a data source with a private connection, the control plane creates a **source binding**. This server-side record stores the network, namespace, database host, and port. The worker receives an opaque reference to the approved source, not authority to supply a different destination.
 
-The gateway proxy checks the certificate, reference, binding epoch, expiry, and session limits. Only then does it ask the unprivileged dialer to connect to the server-selected target. After success, the stream contains only the database protocol; the network load balancer passes it through without terminating workload TLS.
+For every request, the gateway:
 
-This design gave us an important compatibility property: the extraction code still uses normal database drivers. Private connectivity is a transport concern, not a new SQL integration.
+- Authenticates the worker through mutual TLS (mTLS) and checks that its workload certificate is authorized to use the binding.
+- Rejects a binding that has expired or been replaced by a newer version.
+- Resolves the destination and namespace from the stored binding, never from a worker-supplied host and port.
+- Rejects loopback, cloud metadata, management networks, and addresses outside the approved private network ranges.
 
-## 4. The security boundary is the binding, not the tunnel
+The tunnel supplies network connectivity; the binding restricts its use to the approved database. After a restart, the proxy rejects connections until the controller supplies current bindings and trusted certificate authorities. Listening on a port is not enough to start accepting database requests.
 
-An established IPsec tunnel proves that two networks can exchange authenticated packets. It does not prove that a particular worker should be allowed to reach a particular database.
+### Adapting the connection without changing database drivers
 
-We enforce that second decision with a server-side binding:
+Database drivers speak their own database protocol. They cannot first perform Teramot's gateway authorization exchange and then switch protocols on the same socket. We put that exchange in a local forwarder and give the driver a temporary loopback port.
 
-- The control plane derives the authorized network, target host, target port, and namespace from persisted source configuration.
-- The worker receives only an opaque reference and a workload identity.
-- The proxy never accepts a target from the worker.
-- The dialer checks the reference and binding epoch against a controller-owned policy.
-- Loopback, metadata, management ranges, and destinations outside the authorized customer CIDRs are rejected.
+For each driver socket, the forwarder authenticates to the gateway with a workload certificate and sends the source reference. The proxy validates the request, then asks the dialer in the selected namespace to open the stored database host and port. Once the connection is established, the forwarder relays database traffic.
 
-That prevents a compromised extractor from turning a valid connection into an arbitrary port scanner. Possessing the opaque reference alone is not enough; the caller also needs an authorized mTLS identity.
+![Sequence diagram showing a database connection through the local forwarder, private gateway, and IPsec tunnel](/diagrams/self-service-ipsec-sequence.png)
 
-Secrets follow the same principle of least authority. Pre-shared keys are retrieved only for the reconciliation that needs them; they are absent from desired-state documents, images, logs, command lines, and infrastructure state. Workload and gateway certificates are materialized at runtime.
+*This is the extraction path after provisioning. The driver sees a local socket; the namespace dialer reaches the approved private database through IPsec.*
 
-The proxy also fails closed. After a restart it can listen, but it cannot authorize a new CONNECT session until the controller has installed a fresh binding snapshot and trust bundle. “The port is open” is not the same as “the data plane is ready.”
+Existing drivers therefore need no knowledge of namespaces or Teramot's gateway protocol. Forwarding introduces a TLS naming detail: the local socket is at `127.0.0.1`, while a database certificate identifies the real database host. When hostname verification is used, it must verify that logical hostname rather than the loopback address; forwarding is not a reason to disable verification.
 
-## 5. Reproducible infrastructure is part of the feature
+## 5. Recovering the gateway without hiding connection failures
 
-The runtime is only useful if the machine hosting it can be rebuilt without a private operator ritual. We made the host a versioned artifact and kept environment-specific state outside it.
+Storing desired state outside the gateway solves only part of recovery. A replacement host also needs the correct software, services, and permissions before the controller can recreate the connections.
 
-### [Packer](https://developer.hashicorp.com/packer/docs) and [Ansible Core](https://docs.ansible.com/projects/ansible-core/)
+[Packer](https://developer.hashicorp.com/packer/docs) and [Ansible Core](https://docs.ansible.com/projects/ansible-core/) build a versioned Ubuntu image containing strongSwan, systemd services, permissions, and safe defaults. It contains no peer configuration, credentials, or environment endpoints. [Terraform](https://developer.hashicorp.com/terraform/docs) deploys the exact image ID and adds environment-specific network and access configuration.
 
-Packer builds an immutable Ubuntu-based image from an exact base-image ID and pinned package sources. strongSwan comes from the distribution, along with its security updates and mandatory access-control profile.
+The image restores the host software; reconciliation restores the connection configuration. We promote the same image between environments, and the previous image ID remains an explicit rollback target.
 
-Ansible configures service accounts, systemd units, filesystem permissions, AppArmor, the allowlisted strongSwan plugins, logging, and Systems Manager. The image contains binaries and safe defaults, but no customer peer, PSK, certificate, private key, endpoint, or environment-specific URL.
+This is recoverability, not uninterrupted availability. The first version has one active gateway, so connections remain unavailable while automated replacement restores it. A load balancer with one target does not provide high availability.
 
-### [Terraform](https://developer.hashicorp.com/terraform/docs) and deployment
+### A restored tunnel cannot restore a database session
 
-Terraform provisions a deliberately small Auto Scaling Group, a stable IKE/NAT-T address, internal load balancers for data and control traffic, security groups, private DNS, managed prefix lists, and IAM/KMS permissions.
-
-The image is promoted unchanged between environments. Terraform pins the exact image ID instead of resolving a moving “latest” value. Updating the gateway is therefore a reviewable change from one immutable artifact to another, with a clear rollback target.
-
-GitHub Actions assumes short-lived AWS permissions through OIDC for image builds. Systems Manager is the operational access path, rather than a permanently open SSH path.
-
-Our first version uses one gateway with automated replacement and a measured recovery target. An internal load balancer with one target is not high availability, and we say so explicitly.
-
-## 6. Failure behavior is part of the protocol
-
-The most subtle failures happen at the boundary between a database driver and a TCP stream.
-
-Before the first database byte is sent, a refused CONNECT, a temporary gateway outage, or a failed dial can be classified and retried within a bounded budget. After bytes have crossed the relay, transparent reconnection is unsafe: the driver may have an open transaction, partial results, or protocol state that cannot be reconstructed.
-
-The forwarder therefore has an explicit before-bytes/after-bytes taxonomy:
+Even when connectivity returns, the forwarder cannot safely reconstruct an interrupted database session. The database may have an open transaction or may already have returned partial results. Transparently reconnecting and repeating work could duplicate an operation or produce an incorrect result.
 
 | Failure point | Behavior |
 | --- | --- |
@@ -169,53 +155,26 @@ The forwarder therefore has an explicit before-bytes/after-bytes taxonomy:
 | Authorization, protocol, or certificate rejection | Fail immediately; retrying the same identity cannot help. |
 | After database bytes have crossed the relay | Fail the operation; never reconnect transparently. |
 
-An interrupted TCP stream may look like a normal EOF to the driver. The transport layer records the first typed failure and correlates it with the driver's error so operators see both the infrastructure cause and the database symptom.
+An interrupted stream can look like a normal end-of-file (EOF) signal to the driver. The transport layer preserves its first specific failure so operators can see the network cause together with the database symptom. Recovery must restore future connectivity without pretending that an interrupted operation succeeded.
 
-We also keep provisioning, tunnel, and source connectivity as separate health facets. A healthy tunnel does not imply that a particular database is listening, and a database outage should not make the whole connection look unprovisioned.
+## 6. What staging taught us
 
-## What this changed
+Integration tests start the real proxy and namespace dialer, create Linux network namespaces, and connect through PostgreSQL, MySQL, and SQL Server. They cover different TLS modes, rejected identities, revoked certificates, overlapping private networks, and interrupted streams. These tests exercise the components, but not every interaction in the deployed system.
 
-For Teramot, private connectivity became an infrastructure capability instead of a collection of host-specific exceptions:
+In staging, we test the complete path from the control plane to an extraction worker. That exposed two failures the isolated tests had missed:
 
-- gateway state is reproducible and reviewable;
-- a customer network can be isolated without assigning a new host or inventing a new port for every database;
-- the control plane can recover the runtime after replacement;
-- the data plane has a stable contract between the control plane, gateway, and extraction runtime;
-- security decisions are enforced at the point where a connection is requested, not only when the VPN is created.
+- **Healthy processes, broken handoff.** Both the proxy and namespace dialer were healthy, but Linux permissions prevented the proxy from opening the dialer's Unix socket. Process health did not prove that the components could communicate.
+- **Unchanged configuration, rejected refresh.** The control plane refreshed timestamps without changing the configuration generation. The gateway treated each refresh as a conflicting update and eventually rejected new connections. The test fixtures had not reproduced that control-plane behavior.
 
-For users, the experience is simpler:
+These failures are why complete staging extractions are part of release validation before promotion. Component tests establish important properties; an end-to-end extraction checks that the deployed permissions, state exchanges, and data path work together.
 
-- configure the peer and network once instead of opening a support ticket;
-- associate a database source with that private path without editing gateway infrastructure;
-- keep using the database engine and driver they already use;
-- avoid exposing the database directly to the public internet;
-- get actionable provisioning, tunnel, and source diagnostics when something is wrong.
+## Conclusion
 
-## Lessons from building it
+The original runbook produced a working tunnel, but left its configuration and recovery dependent on an operator. The new system stores the intended connection outside the gateway, gives one controller responsibility for maintaining it, and reconstructs the runtime when the machine is replaced.
 
-### A VPN is a building block, not the product
+That managed tunnel is only the foundation. Isolated routing contexts distinguish overlapping customer networks, server-side bindings restrict workers to approved databases, and the forwarder keeps existing drivers compatible. Explicit failure behavior and staging validation make the operational limits visible rather than hiding them behind a successful VPN handshake.
 
-Negotiating IKEv2 is only one step. A usable capability also needs lifecycle management, target authorization, driver compatibility, observability, cleanup, and recovery. The engineering value is in the contract around the tunnel.
-
-### Opaque references reduce coupling
-
-The extractor does not need to understand networking concepts that belong to the control plane. The opaque reference also prevents a caller from smuggling authority through an identifier.
-
-### Recovery should be the normal path
-
-Once desired state and credentials are durable, replacement is another reconciliation cycle. The host's local disk is a cache, not a database.
-
-### Preserve native protocols whenever possible
-
-The loopback forwarder was less invasive than teaching every database driver about private networking. It lets us test the boundary once while preserving existing extraction paths.
-
-### Real boundaries need real tests
-
-The most useful tests run the actual proxy and dialer, exercise network namespaces, and drive real database engines through the path. We validate PostgreSQL, MySQL, and SQL Server across servers with TLS disabled, optional, and required, plus identity rejection, revocation, overlapping CIDRs, and mid-stream interruption.
-
-Database certificate hostname verification is deliberately not downgraded: drivers must decouple the logical hostname from the loopback address before we enable strict verification.
-
-Self-service private connectivity is ultimately a systems problem. It crosses public-key authentication, IKEv2, Linux kernel networking, process privileges, database driver behavior, immutable images, cloud infrastructure, and user experience. The solution became manageable when each layer had a clear authority, a small contract, and a recovery story.
+IPsec provides the encrypted path. The system around it turns that path into a repeatable capability for Teramot customers.
 
 *— Facundo Vivas*
 
