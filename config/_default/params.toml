@@ -44,6 +44,15 @@ hotlinkFeatureImage = false
 
 fingerprintAlgorithm = "sha512" # Valid values are "sha512" (default), "sha384", "sha256"
 
+# -- Analytics --
+# GoatCounter: cookieless and no personal data, which is why it is the one
+# third party we let near the blog. Set `code` to the site slug (the "x" in
+# x.goatcounter.com) to switch on view counts and the "useful" button.
+# Requires "public statistics" enabled in the GoatCounter site settings so
+# the counts can be read back without a token.
+[goatcounter]
+  code = "teramot"
+
 giteaDefaultServer = "https://git.fsfe.org"
 forgejoDefaultServer = "https://v11.next.forgejo.org"
 
@@ -83,7 +92,7 @@ forgejoDefaultServer = "https://v11.next.forgejo.org"
 
 [article]
   showDate = true
-  showViews = false
+  showViews = true   # served by GoatCounter, see layouts/partials/extend-head.html
   showLikes = false
   showDateOnlyInArticle = false
   showDateUpdated = false
@@ -125,7 +134,7 @@ forgejoDefaultServer = "https://v11.next.forgejo.org"
   layoutBackgroundHeaderSpace = true # only used when heroStyle equals background
   showBreadcrumbs = false
   showSummary = true
-  showViews = false
+  showViews = true   # served by GoatCounter, see layouts/partials/extend-head.html
   showLikes = false
   showTableOfContents = false
   showCards = false
@@ -145,7 +154,7 @@ forgejoDefaultServer = "https://v11.next.forgejo.org"
   layoutBackgroundBlur = true # only used when heroStyle equals background or thumbAndBackground
   layoutBackgroundHeaderSpace = true # only used when heroStyle equals background
   showBreadcrumbs = false
-  showViews = false
+  showViews = true   # served by GoatCounter, see layouts/partials/extend-head.html
   showLikes = false
   showTableOfContents = false
   cardView = false
@@ -156,7 +165,7 @@ forgejoDefaultServer = "https://v11.next.forgejo.org"
   layoutBackgroundBlur = true # only used when heroStyle equals background or thumbAndBackground
   layoutBackgroundHeaderSpace = true # only used when heroStyle equals background
   showBreadcrumbs = false
-  showViews = false
+  showViews = true   # served by GoatCounter, see layouts/partials/extend-head.html
   showLikes = false
   showTableOfContents = true
   groupByYear = false

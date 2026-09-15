@@ -1,0 +1,23 @@
+{{/* GoatCounter: cookieless, no personal data, no third-party tracking beyond
+     the count itself. Set goatcounter.code in params.toml to switch it on —
+     until then nothing loads and assets/js/engagement.js hides the placeholders. */}}
+{{ with .Params.goatcounter.code }}
+  <script
+    data-goatcounter="https://{{ . }}.goatcounter.com/count"
+    async
+    src="//gc.zgo.at/count.js"></script>
+{{ end }}
+
+<script id="engagement-config" type="application/json">
+  {{ dict "goatcounterCode" (.Params.goatcounter.code | default "") | jsonify | safeJS }}
+</script>
+
+{{ $engagement := resources.Get "js/engagement.js" }}
+{{ if $engagement }}
+  {{ $engagement = $engagement | resources.Minify | resources.Fingerprint (.Params.fingerprintAlgorithm | default "sha512") }}
+  <script
+    defer
+    src="{{ $engagement.RelPermalink }}"
+    integrity="{{ $engagement.Data.Integrity }}"
+    crossorigin="anonymous"></script>
+{{ end }}
