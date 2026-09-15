@@ -1,0 +1,9 @@
+{
+  "name": "Valentín Torassa",
+  "image": "images/authors/valentin-torassa.jpg",
+  "bio": "Engineer at Teramot. Spends more time summoning audit evidence than he would like to admit.",
+  "social": [
+    { "github": "https://github.com/ValentinTorassa" },
+    { "link": "https://teramot.com" }
+  ]
+}
