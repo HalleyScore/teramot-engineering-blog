@@ -1,0 +1,35 @@
+<svg id="fig-ladder" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 400" width="100%" role="img" aria-label="Four escalating ideas: copy the whole database; copy the tables you need; copy the columns you need; let the source do the GROUP BY and move eight rows." style="font-family:inherit;font-size:14px;color:inherit">
+  <defs>
+    <style>#fig-ladder .row{fill:var(--tm-surface);stroke:var(--tm-rule-strong);stroke-width:1.5}
+#fig-ladder .t{fill:currentColor;font-weight:700;font-size:15px}
+#fig-ladder .m{fill:var(--tm-muted);font-size:13px}
+#fig-ladder .brain{fill:none;stroke:var(--tm-blue);stroke-width:2.5}
+    </style>
+    <radialGradient id="glow"><stop offset="0" stop-color="var(--tm-blue)" stop-opacity=".55"/><stop offset="1" stop-color="var(--tm-blue)" stop-opacity="0"/></radialGradient>
+  </defs>
+  <g transform="translate(0,4)">
+    <rect class="row" width="720" height="86" rx="12"/>
+    <circle class="brain" cx="44" cy="43" r="9"/>
+    <text class="t" x="90" y="36">Replicate the sources into a warehouse, then ask.</text>
+    <text class="m" x="90" y="60">Solid and governed when you can host it. Not an option when the data cannot leave.</text>
+  </g>
+  <g transform="translate(0,100)">
+    <rect class="row" width="720" height="86" rx="12"/>
+    <circle class="brain" cx="44" cy="43" r="15"/>
+    <text class="t" x="90" y="36">Copy only the tables the question needs.</text>
+    <text class="m" x="90" y="60">Better. But a "small" fact table is still millions of rows and dozens of columns wide.</text>
+  </g>
+  <g transform="translate(0,196)">
+    <rect class="row" width="720" height="86" rx="12"/>
+    <circle cx="44" cy="43" r="32" fill="url(#glow)"/><circle class="brain" cx="44" cy="43" r="21"/>
+    <text class="t" x="90" y="36">Copy only the columns, and only the rows that pass the filter.</text>
+    <text class="m" x="90" y="60">Projection plus a pushed-down WHERE. Median slice width in production today: 4 columns.</text>
+  </g>
+  <g transform="translate(0,292)">
+    <rect class="row" width="720" height="104" rx="12" stroke="var(--tm-blue)" stroke-width="2.5"/>
+    <circle cx="44" cy="52" r="46" fill="url(#glow)"/><circle class="brain" cx="44" cy="52" r="27"/>
+    <text class="t" x="90" y="34">Let the source run the GROUP BY. Move the eight rows of the answer.</text>
+    <text class="t" x="90" y="56">Then cache them by source version.</text>
+    <text class="m" x="90" y="82">Aggregation pushdown plus a registry that reuses what it already pulled. This is the article.</text>
+  </g>
+</svg>

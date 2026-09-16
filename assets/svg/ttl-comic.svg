@@ -1,0 +1,49 @@
+<svg id="fig-ttl-comic" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 318" width="100%" role="img" aria-label="Three-panel comic: at 10:00 a question fills the cache; at 10:15 the TTL expires it; at 14:00 the same question re-pulls everything." style="font-family:inherit;font-size:14px;color:inherit">
+  <defs>
+    <style>#fig-ttl-comic .panel{fill:var(--tm-surface);stroke:var(--tm-rule-strong);stroke-width:1.5}
+#fig-ttl-comic .t{fill:currentColor}
+#fig-ttl-comic .m{fill:var(--tm-muted);font-size:12.5px}
+#fig-ttl-comic .clock{fill:none;stroke:currentColor;stroke-width:2}
+#fig-ttl-comic .bubble{fill:var(--tm-paper);stroke:var(--tm-rule-strong);stroke-width:1.2}
+#fig-ttl-comic .slice{fill:var(--tm-blue)}
+#fig-ttl-comic .tomb{fill:none;stroke:var(--tm-muted);stroke-width:2}
+#fig-ttl-comic .fig{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+    </style>
+  </defs>
+  <!-- panel 1 -->
+  <g transform="translate(0,0)">
+    <rect class="panel" width="230" height="250" rx="10"/>
+    <text class="t" x="14" y="28" font-weight="800" font-size="16">10:00</text>
+    <text class="m" x="14" y="48">"Policies sold in August?"</text>
+    <circle class="fig" cx="44" cy="112" r="12"/><path class="fig" d="M44 124v40M44 134l-16 14M44 134l16 14M44 164l-12 26M44 164l12 26"/>
+    <rect class="slice" x="96" y="112" width="122" height="60" rx="8"/>
+    <text x="157" y="138" text-anchor="middle" fill="#fff" font-weight="700" font-size="13">slice</text>
+    <text x="157" y="156" text-anchor="middle" fill="#dbe3ff" font-size="11">8 rows, pulled once</text>
+    <text class="m" x="14" y="214">The cache is warm.</text>
+    <text class="m" x="14" y="232">Life is good.</text>
+  </g>
+  <!-- panel 2 -->
+  <g transform="translate(245,0)">
+    <rect class="panel" width="230" height="250" rx="10"/>
+    <text class="t" x="14" y="28" font-weight="800" font-size="16">10:15</text>
+    <text class="m" x="14" y="48">Nobody asked. The clock did.</text>
+    <circle class="clock" cx="64" cy="136" r="36"/><path class="clock" d="M64 136V108M64 136l20 12"/>
+    <text class="m" x="64" y="192" text-anchor="middle">TTL = 900 s</text>
+    <path class="tomb" d="M130 182v-46a38 38 0 0 1 76 0v46z"/><text class="m" x="168" y="154" text-anchor="middle">RIP</text><text class="m" x="168" y="170" text-anchor="middle" font-size="10.5">slice</text>
+    <text class="m" x="14" y="214">Expired. The data didn't change.</text>
+    <text class="m" x="14" y="232">Fifteen minutes did.</text>
+  </g>
+  <!-- panel 3 -->
+  <g transform="translate(490,0)">
+    <rect class="panel" width="230" height="250" rx="10"/>
+    <text class="t" x="14" y="28" font-weight="800" font-size="16">14:00</text>
+    <text class="m" x="14" y="48">Same person, question, data.</text>
+    <circle class="fig" cx="44" cy="112" r="12"/><path class="fig" d="M44 124v40M44 134l-16 14M44 134l16 14M44 164l-12 26M44 164l12 26"/>
+    <path class="bubble" d="M74 88h140a8 8 0 0 1 8 8v62a8 8 0 0 1-8 8H94l-14 12v-12h-6a8 8 0 0 1-8-8V96a8 8 0 0 1 8-8z"/>
+    <text class="t" x="144" y="110" text-anchor="middle" font-size="11.5">discover · narrow · select</text>
+    <text class="t" x="144" y="130" text-anchor="middle" font-size="11.5">estimate · pull · model</text><text class="t" x="144" y="152" text-anchor="middle" font-size="11.5" font-weight="700">…all over again.</text>
+    <text class="m" x="14" y="214">Nine real runs, hours apart:</text>
+    <text class="m" x="14" y="232">the TTL never hit once.</text>
+  </g>
+  <text class="t" x="360" y="282" text-anchor="middle" font-weight="700" font-size="14">The fix was not a longer TTL. It was no TTL:</text><text class="t" x="360" y="304" text-anchor="middle" font-weight="700" font-size="14">a slice is valid until the source's version moves.</text>
+</svg>

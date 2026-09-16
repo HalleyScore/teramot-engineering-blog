@@ -1,0 +1,8 @@
+{{- /* Inline an SVG from assets/ so it inherits the page's ink colour and CSS variables (dark mode included). */ -}}
+{{- $src := .Get "src" -}}
+{{- $r := resources.Get $src -}}
+{{- if not $r -}}{{ errorf "inlinesvg: %q not found under assets/" $src }}{{- end -}}
+<figure class="not-prose my-10 mx-auto w-full{{ with .Get "class" }} {{ . }}{{ end }}">
+  <div class="w-full overflow-x-auto">{{ $r.Content | safeHTML }}</div>
+  {{- with .Get "caption" }}<figcaption class="mt-3 text-center text-sm leading-6 text-neutral-600 dark:text-neutral-400">{{ . | markdownify }}</figcaption>{{ end -}}
+</figure>
