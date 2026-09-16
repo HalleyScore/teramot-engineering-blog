@@ -1,0 +1,61 @@
+<svg id="fig-containment" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 560" width="100%" role="img" aria-label="Containment law: a cached slice serves a request only if the requested columns are a subset and the predicate is identical or the slice is unfiltered; a missing column widens; a different filter misses." style="font-family:inherit;font-size:14px;color:inherit">
+  <defs>
+    <style>#fig-containment .card{fill:var(--tm-surface);stroke:var(--tm-rule-strong);stroke-width:1.5}
+#fig-containment .t{fill:currentColor}
+#fig-containment .m{fill:var(--tm-muted);font-size:13px}
+#fig-containment .col{fill:var(--tm-paper);stroke:var(--tm-rule-strong);stroke-width:1}
+#fig-containment .colHot{fill:var(--tm-blue);stroke:var(--tm-blue)}
+#fig-containment .colNew{fill:none;stroke:var(--tm-blue);stroke-width:1.5;stroke-dasharray:4 3}
+#fig-containment .chip{font-size:12.5px;text-anchor:middle}
+#fig-containment .verdict{font-weight:800;font-size:16px}
+    </style>
+  </defs>
+  <!-- cached slice -->
+  <g transform="translate(0,0)">
+    <rect class="card" width="720" height="104" rx="12"/>
+    <text class="t" x="18" y="30" font-weight="800" font-size="15">What the registry holds</text>
+    <text class="m" x="18" y="54">table <tspan font-weight="700" fill="currentColor">orders</tspan> · filter <tspan font-weight="700" fill="currentColor">year = 2025</tspan> · columns:</text>
+    <g transform="translate(18,66)">
+      <rect class="col" width="110" height="28" rx="6"/><text class="t chip" x="55" y="19">customer_id</text>
+      <rect class="col" x="120" width="90" height="28" rx="6"/><text class="t chip" x="165" y="19">amount</text>
+      <rect class="col" x="220" width="90" height="28" rx="6"/><text class="t chip" x="265" y="19">region</text>
+      <rect class="col" x="320" width="110" height="28" rx="6"/><text class="t chip" x="375" y="19">order_date</text>
+    </g>
+  </g>
+  <!-- A -->
+  <g transform="translate(0,120)">
+    <rect class="card" width="720" height="130" rx="12"/>
+    <text class="t" x="18" y="30" font-weight="700" font-size="15">Request A · year = 2025 · customer_id, amount</text>
+    <g transform="translate(18,44)">
+      <rect class="colHot" width="110" height="28" rx="6"/><text class="chip" x="55" y="19" fill="#fff">customer_id</text>
+      <rect class="colHot" x="120" width="90" height="28" rx="6"/><text class="chip" x="165" y="19" fill="#fff">amount</text>
+    </g>
+    <text class="verdict" x="18" y="108" fill="var(--tm-blue)">HIT · 0 rows moved</text>
+    <text class="m" x="250" y="88">Everything the question needs is already here.</text>
+    <text class="m" x="250" y="108">Nothing moves. The source never hears about it.</text>
+  </g>
+  <!-- B -->
+  <g transform="translate(0,262)">
+    <rect class="card" width="720" height="130" rx="12"/>
+    <text class="t" x="18" y="30" font-weight="700" font-size="15">Request B · year = 2025 · customer_id, discount</text>
+    <g transform="translate(18,44)">
+      <rect class="colHot" width="110" height="28" rx="6"/><text class="chip" x="55" y="19" fill="#fff">customer_id</text>
+      <rect class="colNew" x="120" width="90" height="28" rx="6"/><text class="t chip" x="165" y="19">discount</text>
+    </g>
+    <text class="verdict" x="18" y="108" fill="var(--tm-blue)">WIDEN · pull the gap</text>
+    <text class="m" x="250" y="88">One column is missing. Fetch only the gap;</text>
+    <text class="m" x="250" y="108">the rest of the slice stays exactly as it was.</text>
+  </g>
+  <!-- C -->
+  <g transform="translate(0,404)">
+    <rect class="card" width="720" height="130" rx="12"/>
+    <text class="t" x="18" y="30" font-weight="700" font-size="15">Request C · year = 2024 · customer_id, amount</text>
+    <g transform="translate(18,44)">
+      <rect class="col" width="110" height="28" rx="6"/><text class="t chip" x="55" y="19">customer_id</text>
+      <rect class="col" x="120" width="90" height="28" rx="6"/><text class="t chip" x="165" y="19">amount</text>
+    </g>
+    <text class="verdict" x="18" y="108" fill="var(--tm-muted)">MISS · fresh pull</text>
+    <text class="m" x="250" y="88">Different filter, different rows. A slice never serves</text>
+    <text class="m" x="250" y="108">fewer rows than the question asked for. Ever.</text>
+  </g>
+</svg>

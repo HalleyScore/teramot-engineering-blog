@@ -1,0 +1,41 @@
+<svg id="fig-funnel" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" width="100%" role="img" aria-label="The eight-stage funnel: discover, narrow, select, decide, estimate, pull, model, execute" style="font-family:inherit;font-size:14px;color:inherit">
+  <defs>
+    <style>#fig-funnel .stage{fill:var(--tm-surface);stroke:var(--tm-rule-strong);stroke-width:1.5}
+#fig-funnel .hot{fill:var(--tm-blue);stroke:var(--tm-blue)}
+#fig-funnel .lbl{fill:currentColor;font-weight:700;font-size:15px}
+#fig-funnel .sub{fill:var(--tm-muted);font-size:12.5px}
+#fig-funnel .rows{fill:var(--tm-muted);font-size:13px;font-style:italic;text-anchor:end}
+#fig-funnel .w{fill:#fff}.ws{fill:#dbe3ff}
+#fig-funnel .arrow{stroke:var(--tm-muted);stroke-width:1.5;fill:none;marker-end:url(#ah)}
+    </style>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--tm-muted)"/></marker>
+  </defs>
+  <!-- two rows of four -->
+  <g transform="translate(0,10)">
+    <g transform="translate(0,0)"><rect class="stage" width="165" height="64" rx="12"/><text class="lbl" x="14" y="27">1 · discover</text><text class="sub" x="14" y="48">metadata only, no rows</text></g>
+    <g transform="translate(185,0)"><rect class="stage" width="165" height="64" rx="12"/><text class="lbl" x="14" y="27">2 · narrow</text><text class="sub" x="14" y="48">embeddings, top-K tables</text></g>
+    <g transform="translate(370,0)"><rect class="stage" width="165" height="64" rx="12"/><text class="lbl" x="14" y="27">3 · select</text><text class="sub" x="14" y="48">agent picks tables + filters</text></g>
+    <g transform="translate(555,0)"><rect class="stage hot" width="165" height="64" rx="12"/><text class="lbl w" x="14" y="27">4 · decide</text><text class="sub ws" x="14" y="48">cache: hit, widen or miss</text></g>
+    <path class="arrow" d="M167 32H183"/><path class="arrow" d="M352 32H368"/><path class="arrow" d="M537 32H553"/>
+  </g>
+  <!-- connector down -->
+  <path class="arrow" d="M637 76 V 96 H 82 V 118"/>
+  <g transform="translate(0,120)">
+    <g transform="translate(0,0)"><rect class="stage" width="165" height="64" rx="12"/><text class="lbl" x="14" y="27">5 · estimate</text><text class="sub" x="14" y="48">COUNT(*) before pulling</text></g>
+    <g transform="translate(185,0)"><rect class="stage hot" width="165" height="64" rx="12"/><text class="lbl w" x="14" y="27">6 · pull</text><text class="sub ws" x="14" y="48">the slice crosses the wire</text></g>
+    <g transform="translate(370,0)"><rect class="stage" width="165" height="64" rx="12"/><text class="lbl" x="14" y="27">7 · model</text><text class="sub" x="14" y="48">agent writes SQL, locally</text></g>
+    <g transform="translate(555,0)"><rect class="stage" width="165" height="64" rx="12"/><text class="lbl" x="14" y="27">8 · execute</text><text class="sub" x="14" y="48">answer, SQL, rows per table</text></g>
+    <path class="arrow" d="M167 32H183"/><path class="arrow" d="M352 32H368"/><path class="arrow" d="M537 32H553"/>
+  </g>
+  <!-- what shrinks -->
+  <g transform="translate(0,222)">
+    <text class="lbl" x="0" y="14" style="font-size:13px;fill:var(--tm-muted);font-weight:700;letter-spacing:.04em">WHAT SHRINKS AT EACH STEP</text>
+    <g transform="translate(0,30)" style="font-size:13.5px">
+      <text class="rows" x="190" y="16">tens of thousands of tables</text><text fill="currentColor" x="205" y="16">→ 50 candidates by name and description</text>
+      <text class="rows" x="190" y="42">50 candidates</text><text fill="currentColor" x="205" y="42">→ at most 20 tables, a handful of columns each</text>
+      <text class="rows" x="190" y="68">20 tables</text><text fill="currentColor" x="205" y="68">→ whatever the cache already holds is not pulled again</text>
+      <text class="rows" x="190" y="94">millions of rows</text><text fill="currentColor" x="205" y="94">→ over budget? push the GROUP BY to the source</text>
+      <text class="rows" x="190" y="120" style="fill:var(--tm-blue);font-weight:700;font-style:normal">8 rows</text><text fill="currentColor" x="205" y="120" font-weight="700">→ cross the wire. Everything else stayed home.</text>
+    </g>
+  </g>
+</svg>

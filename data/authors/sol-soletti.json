@@ -1,0 +1,13 @@
+{
+  "name": "Sol Soletti",
+  "image": "images/authors/sol-soletti.jpg",
+  "bio": "Engineer at Teramot.",
+  "social": [
+    {
+      "github": "https://github.com/solsolettidev"
+    },
+    {
+      "link": "https://teramot.com"
+    }
+  ]
+}
