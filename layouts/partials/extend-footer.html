@@ -5,3 +5,38 @@
   </a>
   <p>Data, infrastructure, and the systems behind Teramot.</p>
 </div>
+
+{{/*
+  AsciiDoc code blocks: adopt them into the theme's Markdown code-block chrome.
+
+  Blowfish builds that chrome in layouts/_default/_markup/render-codeblock.html,
+  a Markdown render hook that Asciidoctor content never passes through, so
+  .adoc blocks would otherwise miss the wrapper's rounding and shadow and the
+  copy button (assets/js/code.js binds to .highlight-wrapper on DOMContentLoaded).
+
+  Asciidoctor already marks its Rouge output <pre class="rouge highlight">, which
+  is the selector code.js reads the text from, so wrapping is all that is needed.
+  This runs during parsing, before that listener fires.
+*/}}
+<script>
+  (function () {
+    'use strict'
+    document.querySelectorAll('.listingblock > .content > pre.rouge').forEach(function (pre) {
+      var content = pre.parentNode
+      var block = content.parentNode
+      var wrapper = document.createElement('div')
+      wrapper.className = 'highlight-wrapper'
+
+      // Asciidoctor renders a block title as a sibling above .content; move it
+      // inside so it reads as the theme's own code-block title bar.
+      var title = block.querySelector(':scope > .title')
+      if (title) {
+        title.classList.add('codeblock-title')
+        wrapper.appendChild(title)
+      }
+
+      content.replaceChild(wrapper, pre)
+      wrapper.appendChild(pre)
+    })
+  })()
+</script>
