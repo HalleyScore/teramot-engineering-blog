@@ -1,7 +1,11 @@
-name: Deploy Hugo site to Pages
+name: Build and deploy Hugo site to Pages
 
 on:
   push:
+    branches: ["main"]
+  # Validate on PRs too: the build is the only thing that catches a broken
+  # site before it reaches main, where the next push deploys it.
+  pull_request:
     branches: ["main"]
   workflow_dispatch:
 
@@ -11,8 +15,11 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  # Deployments serialise on one group so they never overlap. PR validation
+  # builds deploy nothing, so they get a per-branch group instead and a new
+  # push supersedes the run it replaces.
+  group: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.head_ref) || 'pages' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   HUGO_VERSION: 0.162.0
@@ -32,26 +39,36 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
+      # Resolves the Pages URL to build against. There is no deployment behind
+      # a pull request, so this is skipped there and the build falls back to
+      # the baseURL in config/_default/hugo.toml.
       - name: Setup Pages
         id: pages
+        if: github.event_name != 'pull_request'
         uses: actions/configure-pages@v5
 
       - name: Build with Hugo
         env:
           HUGO_ENVIRONMENT: production
           HUGO_ENV: production
+          BASE_URL: ${{ steps.pages.outputs.base_url }}
         run: |
-          hugo \
-            --gc \
-            --minify \
-            --baseURL "${{ steps.pages.outputs.base_url }}/"
+          if [ -n "${BASE_URL}" ]; then
+            hugo --gc --minify --baseURL "${BASE_URL}/"
+          else
+            hugo --gc --minify
+          fi
 
       - name: Upload artifact
+        if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./public
 
   deploy:
+    # Pull requests validate the build only; nothing is published until the
+    # change is on main.
+    if: github.event_name != 'pull_request'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
