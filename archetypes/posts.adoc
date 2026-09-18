@@ -1,0 +1,17 @@
+---
+title: "{{ replace .File.ContentBaseName "-" " " | title }}"
+date: {{ .Date }}
+draft: true
+authors:
+  - teramot-engineering
+tags: []
+categories: []
+summary: ""
+---
+Hugo reads the YAML front matter above; everything below it is AsciiDoc.
+Do not add an AsciiDoc document title (`= Title`) — the `title` key owns that,
+and a second one would render twice.
+
+== First section
+
+Body text.

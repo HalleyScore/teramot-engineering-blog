@@ -428,3 +428,161 @@ html.dark #site-footer .tm-footer-logo-dark {
     transition: none;
   }
 }
+
+
+/* BEGIN GENERATED: rouge syntax highlighting (scripts/gen-rouge-css.py) */
+/* -- Rouge Highlight (AsciiDoc) -- */
+/* Everything between the BEGIN/END markers is GENERATED -- do not edit by hand.
+ *
+ * Asciidoctor highlights .adoc code blocks with Rouge, which emits the same
+ * Pygments token classes as Chroma but wraps them in <pre class="rouge">
+ * instead of <pre class="chroma">. These rules are the theme's own Chroma
+ * palettes re-pointed at that wrapper, so AsciiDoc and Markdown code blocks
+ * are coloured identically in light and dark mode.
+ *
+ * Padding, rounding and overflow are not set here: both formats sit inside
+ * the same prose styles and inherit them.
+ *
+ * Source: themes/blowfish/assets/css/components/chroma.css
+ * Regenerate after upgrading the theme: python3 scripts/gen-rouge-css.py
+ */
+
+/* Generated using: hugo gen chromastyles --style=github */
+/* PreWrapper */ html:not(.dark) pre.rouge { background-color:#fff; }
+/* Error */ html:not(.dark) pre.rouge .err { color:#f6f8fa;background-color:#82071e }
+/* Keyword */ html:not(.dark) pre.rouge .k { color:#cf222e }
+/* KeywordConstant */ html:not(.dark) pre.rouge .kc { color:#cf222e }
+/* KeywordDeclaration */ html:not(.dark) pre.rouge .kd { color:#cf222e }
+/* KeywordNamespace */ html:not(.dark) pre.rouge .kn { color:#cf222e }
+/* KeywordPseudo */ html:not(.dark) pre.rouge .kp { color:#cf222e }
+/* KeywordReserved */ html:not(.dark) pre.rouge .kr { color:#cf222e }
+/* KeywordType */ html:not(.dark) pre.rouge .kt { color:#cf222e }
+/* NameAttribute */ html:not(.dark) pre.rouge .na { color:#1f2328 }
+/* NameClass */ html:not(.dark) pre.rouge .nc { color:#1f2328 }
+/* NameConstant */ html:not(.dark) pre.rouge .no { color:#0550ae }
+/* NameDecorator */ html:not(.dark) pre.rouge .nd { color:#0550ae }
+/* NameEntity */ html:not(.dark) pre.rouge .ni { color:#6639ba }
+/* NameLabel */ html:not(.dark) pre.rouge .nl { color:#900;font-weight:bold }
+/* NameNamespace */ html:not(.dark) pre.rouge .nn { color:#24292e }
+/* NameOther */ html:not(.dark) pre.rouge .nx { color:#1f2328 }
+/* NameTag */ html:not(.dark) pre.rouge .nt { color:#0550ae }
+/* NameBuiltin */ html:not(.dark) pre.rouge .nb { color:#6639ba }
+/* NameBuiltinPseudo */ html:not(.dark) pre.rouge .bp { color:#6a737d }
+/* NameVariable */ html:not(.dark) pre.rouge .nv { color:#953800 }
+/* NameVariableClass */ html:not(.dark) pre.rouge .vc { color:#953800 }
+/* NameVariableGlobal */ html:not(.dark) pre.rouge .vg { color:#953800 }
+/* NameVariableInstance */ html:not(.dark) pre.rouge .vi { color:#953800 }
+/* NameVariableMagic */ html:not(.dark) pre.rouge .vm { color:#953800 }
+/* NameFunction */ html:not(.dark) pre.rouge .nf { color:#6639ba }
+/* NameFunctionMagic */ html:not(.dark) pre.rouge .fm { color:#6639ba }
+/* LiteralString */ html:not(.dark) pre.rouge .s { color:#0a3069 }
+/* LiteralStringAffix */ html:not(.dark) pre.rouge .sa { color:#0a3069 }
+/* LiteralStringBacktick */ html:not(.dark) pre.rouge .sb { color:#0a3069 }
+/* LiteralStringChar */ html:not(.dark) pre.rouge .sc { color:#0a3069 }
+/* LiteralStringDelimiter */ html:not(.dark) pre.rouge .dl { color:#0a3069 }
+/* LiteralStringDoc */ html:not(.dark) pre.rouge .sd { color:#0a3069 }
+/* LiteralStringDouble */ html:not(.dark) pre.rouge .s2 { color:#0a3069 }
+/* LiteralStringEscape */ html:not(.dark) pre.rouge .se { color:#0a3069 }
+/* LiteralStringHeredoc */ html:not(.dark) pre.rouge .sh { color:#0a3069 }
+/* LiteralStringInterpol */ html:not(.dark) pre.rouge .si { color:#0a3069 }
+/* LiteralStringOther */ html:not(.dark) pre.rouge .sx { color:#0a3069 }
+/* LiteralStringRegex */ html:not(.dark) pre.rouge .sr { color:#0a3069 }
+/* LiteralStringSingle */ html:not(.dark) pre.rouge .s1 { color:#0a3069 }
+/* LiteralStringSymbol */ html:not(.dark) pre.rouge .ss { color:#032f62 }
+/* LiteralNumber */ html:not(.dark) pre.rouge .m { color:#0550ae }
+/* LiteralNumberBin */ html:not(.dark) pre.rouge .mb { color:#0550ae }
+/* LiteralNumberFloat */ html:not(.dark) pre.rouge .mf { color:#0550ae }
+/* LiteralNumberHex */ html:not(.dark) pre.rouge .mh { color:#0550ae }
+/* LiteralNumberInteger */ html:not(.dark) pre.rouge .mi { color:#0550ae }
+/* LiteralNumberIntegerLong */ html:not(.dark) pre.rouge .il { color:#0550ae }
+/* LiteralNumberOct */ html:not(.dark) pre.rouge .mo { color:#0550ae }
+/* Operator */ html:not(.dark) pre.rouge .o { color:#0550ae }
+/* OperatorWord */ html:not(.dark) pre.rouge .ow { color:#0550ae }
+/* Punctuation */ html:not(.dark) pre.rouge .p { color:#1f2328 }
+/* Comment */ html:not(.dark) pre.rouge .c { color:#57606a }
+/* CommentHashbang */ html:not(.dark) pre.rouge .ch { color:#57606a }
+/* CommentMultiline */ html:not(.dark) pre.rouge .cm { color:#57606a }
+/* CommentSingle */ html:not(.dark) pre.rouge .c1 { color:#57606a }
+/* CommentSpecial */ html:not(.dark) pre.rouge .cs { color:#57606a }
+/* CommentPreproc */ html:not(.dark) pre.rouge .cp { color:#57606a }
+/* CommentPreprocFile */ html:not(.dark) pre.rouge .cpf { color:#57606a }
+/* GenericDeleted */ html:not(.dark) pre.rouge .gd { color:#82071e;background-color:#ffebe9 }
+/* GenericEmph */ html:not(.dark) pre.rouge .ge { color:#1f2328 }
+/* GenericInserted */ html:not(.dark) pre.rouge .gi { color:#116329;background-color:#dafbe1 }
+/* GenericOutput */ html:not(.dark) pre.rouge .go { color:#1f2328 }
+/* GenericUnderline */ html:not(.dark) pre.rouge .gl { text-decoration:underline }
+/* TextWhitespace */ html:not(.dark) pre.rouge .w { color:#fff }
+/* Name (Rouge) -> as Chroma's .nx */ html:not(.dark) pre.rouge .n { color:#1f2328 }
+
+/* Generated using: hugo gen chromastyles --style=github-dark */
+/* PreWrapper */ html.dark pre.rouge { color:#e6edf3;background-color:#0d1117; }
+/* Error */ html.dark pre.rouge .err { color:#f85149 }
+/* Keyword */ html.dark pre.rouge .k { color:#ff7b72 }
+/* KeywordConstant */ html.dark pre.rouge .kc { color:#79c0ff }
+/* KeywordDeclaration */ html.dark pre.rouge .kd { color:#ff7b72 }
+/* KeywordNamespace */ html.dark pre.rouge .kn { color:#ff7b72 }
+/* KeywordPseudo */ html.dark pre.rouge .kp { color:#79c0ff }
+/* KeywordReserved */ html.dark pre.rouge .kr { color:#ff7b72 }
+/* KeywordType */ html.dark pre.rouge .kt { color:#ff7b72 }
+/* NameClass */ html.dark pre.rouge .nc { color:#f0883e;font-weight:bold }
+/* NameConstant */ html.dark pre.rouge .no { color:#79c0ff;font-weight:bold }
+/* NameDecorator */ html.dark pre.rouge .nd { color:#d2a8ff;font-weight:bold }
+/* NameEntity */ html.dark pre.rouge .ni { color:#ffa657 }
+/* NameException */ html.dark pre.rouge .ne { color:#f0883e;font-weight:bold }
+/* NameLabel */ html.dark pre.rouge .nl { color:#79c0ff;font-weight:bold }
+/* NameNamespace */ html.dark pre.rouge .nn { color:#ff7b72 }
+/* NameProperty */ html.dark pre.rouge .py { color:#79c0ff }
+/* NameTag */ html.dark pre.rouge .nt { color:#7ee787 }
+/* NameVariable */ html.dark pre.rouge .nv { color:#79c0ff }
+/* NameVariableClass */ html.dark pre.rouge .vc { color:#79c0ff }
+/* NameVariableGlobal */ html.dark pre.rouge .vg { color:#79c0ff }
+/* NameVariableInstance */ html.dark pre.rouge .vi { color:#79c0ff }
+/* NameVariableMagic */ html.dark pre.rouge .vm { color:#79c0ff }
+/* NameFunction */ html.dark pre.rouge .nf { color:#d2a8ff;font-weight:bold }
+/* NameFunctionMagic */ html.dark pre.rouge .fm { color:#d2a8ff;font-weight:bold }
+/* Literal */ html.dark pre.rouge .l { color:#a5d6ff }
+/* LiteralDate */ html.dark pre.rouge .ld { color:#79c0ff }
+/* LiteralString */ html.dark pre.rouge .s { color:#a5d6ff }
+/* LiteralStringAffix */ html.dark pre.rouge .sa { color:#79c0ff }
+/* LiteralStringBacktick */ html.dark pre.rouge .sb { color:#a5d6ff }
+/* LiteralStringChar */ html.dark pre.rouge .sc { color:#a5d6ff }
+/* LiteralStringDelimiter */ html.dark pre.rouge .dl { color:#79c0ff }
+/* LiteralStringDoc */ html.dark pre.rouge .sd { color:#a5d6ff }
+/* LiteralStringDouble */ html.dark pre.rouge .s2 { color:#a5d6ff }
+/* LiteralStringEscape */ html.dark pre.rouge .se { color:#79c0ff }
+/* LiteralStringHeredoc */ html.dark pre.rouge .sh { color:#79c0ff }
+/* LiteralStringInterpol */ html.dark pre.rouge .si { color:#a5d6ff }
+/* LiteralStringOther */ html.dark pre.rouge .sx { color:#a5d6ff }
+/* LiteralStringRegex */ html.dark pre.rouge .sr { color:#79c0ff }
+/* LiteralStringSingle */ html.dark pre.rouge .s1 { color:#a5d6ff }
+/* LiteralStringSymbol */ html.dark pre.rouge .ss { color:#a5d6ff }
+/* LiteralNumber */ html.dark pre.rouge .m { color:#a5d6ff }
+/* LiteralNumberBin */ html.dark pre.rouge .mb { color:#a5d6ff }
+/* LiteralNumberFloat */ html.dark pre.rouge .mf { color:#a5d6ff }
+/* LiteralNumberHex */ html.dark pre.rouge .mh { color:#a5d6ff }
+/* LiteralNumberInteger */ html.dark pre.rouge .mi { color:#a5d6ff }
+/* LiteralNumberIntegerLong */ html.dark pre.rouge .il { color:#a5d6ff }
+/* LiteralNumberOct */ html.dark pre.rouge .mo { color:#a5d6ff }
+/* Operator */ html.dark pre.rouge .o { color:#ff7b72;font-weight:bold }
+/* OperatorWord */ html.dark pre.rouge .ow { color:#ff7b72;font-weight:bold }
+/* Comment */ html.dark pre.rouge .c { color:#8b949e;font-style:italic }
+/* CommentHashbang */ html.dark pre.rouge .ch { color:#8b949e;font-style:italic }
+/* CommentMultiline */ html.dark pre.rouge .cm { color:#8b949e;font-style:italic }
+/* CommentSingle */ html.dark pre.rouge .c1 { color:#8b949e;font-style:italic }
+/* CommentSpecial */ html.dark pre.rouge .cs { color:#8b949e;font-weight:bold;font-style:italic }
+/* CommentPreproc */ html.dark pre.rouge .cp { color:#8b949e;font-weight:bold;font-style:italic }
+/* CommentPreprocFile */ html.dark pre.rouge .cpf { color:#8b949e;font-weight:bold;font-style:italic }
+/* GenericDeleted */ html.dark pre.rouge .gd { color:#ffa198;background-color:#490202 }
+/* GenericEmph */ html.dark pre.rouge .ge { font-style:italic }
+/* GenericError */ html.dark pre.rouge .gr { color:#ffa198 }
+/* GenericHeading */ html.dark pre.rouge .gh { color:#79c0ff;font-weight:bold }
+/* GenericInserted */ html.dark pre.rouge .gi { color:#56d364;background-color:#0f5323 }
+/* GenericOutput */ html.dark pre.rouge .go { color:#8b949e }
+/* GenericPrompt */ html.dark pre.rouge .gp { color:#8b949e }
+/* GenericStrong */ html.dark pre.rouge .gs { font-weight:bold }
+/* GenericSubheading */ html.dark pre.rouge .gu { color:#79c0ff }
+/* GenericTraceback */ html.dark pre.rouge .gt { color:#ff7b72 }
+/* GenericUnderline */ html.dark pre.rouge .gl { text-decoration:underline }
+/* TextWhitespace */ html.dark pre.rouge .w { color:#6e7681 }
+
+/* END GENERATED: rouge syntax highlighting */
