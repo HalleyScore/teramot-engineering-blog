@@ -84,6 +84,28 @@ Hugo is upgraded.
   title bar and copy button, which otherwise only reach Markdown via the
   `render-codeblock.html` hook.
 
+## Icons and link previews
+
+Blowfish ships its own blowfish-branded `favicon.ico`, `apple-touch-icon.png`,
+`android-chrome-*.png` and `site.webmanifest` in the theme's `static/`, which
+Hugo publishes to the site root. Slack, iMessage and most crawlers do not
+render SVG favicons, so given only an SVG they fall back to `/favicon.ico` and
+pick up the theme's icon.
+
+The Teramot set in `static/` shadows the theme's (project `static/` wins at the
+same path) and is generated from `static/brand/teramot-favicon.svg`:
+
+```sh
+./scripts/gen-favicons.sh    # needs rsvg-convert and ImageMagick 7
+```
+
+Tab icons are transparent, matching the SVG. App and unfurl icons are opaque,
+because iOS composites a transparent `apple-touch-icon` onto black.
+
+`layouts/partials/favicons.html` declares the whole set. Blowfish renders that
+partial *instead of* its own icon block, so anything omitted there is simply
+not declared. Bump the `$v` cache-buster in it when the mark changes.
+
 ## Deploy
 
 Pushing to `main` triggers `.github/workflows/hugo.yml`, which builds the site

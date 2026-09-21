@@ -1,1 +1,22 @@
-<link rel="icon" type="image/svg+xml" href="{{ "brand/teramot-favicon.svg" | relURL }}?v=teramot">
+{{/*
+  Teramot icons, replacing Blowfish's.
+
+  Blowfish's head.html renders this partial INSTEAD of its own icon block when
+  the file exists, so everything the site needs has to be declared here -- an
+  SVG alone leaves link previews with nothing they can render.
+
+  Slack, iMessage, WhatsApp and most crawlers do not support SVG favicons. Given
+  no usable raster icon they fall back to /favicon.ico at the site root, which
+  is why the raster set below also has to exist as real files: the theme ships
+  its own blowfish-branded icons at exactly those paths. They are generated into
+  static/ by scripts/gen-favicons.sh, which shadows the theme's copies.
+
+  Bump $v when the mark changes, to push past browser and unfurler caches.
+*/}}
+{{- $v := "teramot-2" -}}
+<link rel="icon" type="image/svg+xml" href="{{ "brand/teramot-favicon.svg" | relURL }}?v={{ $v }}">
+<link rel="icon" type="image/png" sizes="32x32" href="{{ "favicon-32x32.png" | relURL }}?v={{ $v }}">
+<link rel="icon" type="image/png" sizes="16x16" href="{{ "favicon-16x16.png" | relURL }}?v={{ $v }}">
+<link rel="shortcut icon" href="{{ "favicon.ico" | relURL }}?v={{ $v }}">
+<link rel="apple-touch-icon" sizes="180x180" href="{{ "apple-touch-icon.png" | relURL }}?v={{ $v }}">
+<link rel="manifest" href="{{ "site.webmanifest" | relURL }}?v={{ $v }}">
