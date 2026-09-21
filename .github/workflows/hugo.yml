@@ -22,7 +22,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
-  HUGO_VERSION: 0.162.0
+  HUGO_VERSION: 0.166.0
   # Hugo shells out to this to render .adoc content (config/_default/markup.toml).
   ASCIIDOCTOR_VERSION: 2.0.26
   # Asciidoctor highlights .adoc code blocks with this.
